@@ -1,0 +1,67 @@
+# ---------- Приложение ----------
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tochka-deployment
+  namespace: tochka
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      project: tochka
+  template:
+    metadata:
+      labels:
+        project: tochka
+    spec:
+      containers:
+      - name: tochka
+        image: cr.yandex/crprk26pj3fqbo2otsj4/tochka:latest
+        ports:
+        - containerPort: 5001
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tochka-service
+  namespace: tochka
+spec:
+  selector:
+    project: tochka
+  ports:
+  - name: app-listener
+    port: 80
+    targetPort: 5001
+    protocol: TCP
+
+# ---------- Ingress ----------
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: tochka-ingress
+  namespace: tochka
+  annotations:
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+    nginx.org/websocket-services: "tochka-service"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      proxy_set_header Upgrade "websocket";
+      proxy_set_header Connection "Upgrade";
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: localhost
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: tochka
+            port:
+              number: 80
