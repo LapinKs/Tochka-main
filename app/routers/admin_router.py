@@ -23,7 +23,7 @@ async def add_instrument(
     )
 
     if instrument_find:
-        raise HTTPException(status_code=400, detail="Ticker must be unique")
+        raise HTTPException(status_code=400, detail="Ticker should be unique")
     if not match('^[A-Z]{2,10}$', instrument.ticker):
         raise HTTPException(status_code=400, detail="Invalid ticker format")
 
