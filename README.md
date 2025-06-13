@@ -1,2 +1,2 @@
 # Tochka
-api биржы
+api биржи
